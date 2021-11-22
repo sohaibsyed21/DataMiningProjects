@@ -1,10 +1,10 @@
 ---
-title: "CS 422- Homework 5"
+title: "using Decision Trees to predict if a Hotel Reservation will get cancelled"
 output: 
   html_notebook:
     toc: yes
     toc_float: yes
-author: Sohaib Syed, A20439074
+author: Sohaib Syed
 ---
 
 
