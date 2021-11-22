@@ -1,0 +1,254 @@
+---
+title: "CS422-Homework 7"
+output: 
+  html_notebook:
+    toc: yes
+    toc_float: yes
+author: Sohaib Syed, A20439074
+---
+### Part 2.1
+```{r}  
+library(keras)
+library(dplyr)
+library(caret)
+
+rm(list=ls())
+
+# Set working directory as needed
+setwd("...")
+
+df <- read.csv("activity-small.csv")
+
+# Seed the PRNG
+set.seed(1122)
+df <- df[sample(nrow(df)), ] # Shuffle, as all of the data in the .csv file
+                             # is ordered by label!  This will cause problems
+                             # if we do not shuffle as the validation split
+                             # may not include observations of class 3 (the
+                             # class that occurs at the end).  The validation_
+                             # split parameter samples from the end of the
+                             # training set.
+
+# Scale the dataset.    We will scale our dataset so all of the
+# predictors have a mean of 0 and standard deviation of 1.  Scale test and
+# training splits independently!
+
+indx <- sample(1:nrow(df), 0.20*nrow(df))
+test.df  <- df[indx, ]
+train.df <- df[-indx, ]
+
+label.test <- test.df$label
+test.df$label <- NULL
+test.df <- as.data.frame(scale(test.df))
+test.df$label <- label.test
+rm(label.test)
+
+label.train <- train.df$label
+train.df$label <- NULL
+train.df <- as.data.frame(scale(train.df))
+train.df$label <- label.train
+rm(label.train)
+rm(indx)
+X_train <- select(train.df, -label)
+y_train <- train.df$label
+
+y_train.ohe <- to_categorical(y_train)
+
+X_test <- select(test.df, -label)
+y_test <- test.df$label
+y_test.ohe <- to_categorical(test.df$label)
+```
+# --- Your code goes below ---
+### 2.1-A
+```{r}
+create_model<-function(){
+  model<-NULL
+  model <- keras_model_sequential() %>%
+  layer_dense(units = 8, activation="relu") %>%
+  layer_dense(units = 4, activation="softmax")
+
+model %>% 
+  compile(loss = "categorical_crossentropy", 
+          optimizer="adam", 
+          metrics=c("accuracy"))
+return(model)
+}
+model<-create_model()
+model %>% fit(data.matrix(X_train), y_train.ohe, epochs = 100,batch_size=1,verbose=0)
+model %>% evaluate(as.matrix(X_test), y_test.ohe)
+t <-  model %>% predict(as.matrix(X_test)) %>% k_argmax()
+pred.class <- (as.array(t))
+rm(t)
+confusionMatrix(as.factor(pred.class), as.factor(y_test))
+```
+### 2.1-A-i&ii
+```{r}
+cat("Batch gradient descent\n Overall accuracy: 79.50%\n Class 0: Sens. = 96.49, Spec. = 96.50, Bal.Acc. = 96.50\n Class 1: Sens. = 83.02, Spec. = 87.71, Bal.Acc. = 84.37\n Class 2: Sens. = 85.71, Spec. = 94.30, Bal.Acc. = 90.01\n Class 3: Sens. = 50.00, Spec. = 96.05, Bal.Acc. = 73.03\n")
+```
+### 2.1-B
+```{r}
+##BATCH SIZE 1
+model<-NULL
+model<-create_model()
+
+begin<-Sys.time()
+model %>% fit(data.matrix(X_train), y_train.ohe, epochs = 100,batch_size=1)
+end<-Sys.time()
+
+model %>% evaluate(as.matrix(X_test), y_test.ohe)
+t <-  model %>% predict(as.matrix(X_test)) %>% k_argmax()
+pred.class <- (as.array(t))
+rm(t)
+confusionMatrix(as.factor(pred.class), as.factor(y_test))
+
+time1<-end-begin
+
+##BATCH SIZE 32
+model<-NULL
+model<-create_model()
+
+begin<-Sys.time()
+model %>% fit(data.matrix(X_train), y_train.ohe, epochs = 100,batch_size=32)
+end<-Sys.time()
+
+model %>% evaluate(as.matrix(X_test), y_test.ohe)
+t <-  model %>% predict(as.matrix(X_test)) %>% k_argmax()
+pred.class <- (as.array(t))
+rm(t)
+confusionMatrix(as.factor(pred.class), as.factor(y_test))
+time32<-end-begin
+##BATCH SIZE 64
+model<-NULL
+model<-create_model()
+
+begin<-Sys.time()
+model %>% fit(data.matrix(X_train), y_train.ohe, epochs = 100,batch_size=64)
+end<-Sys.time()
+
+model %>% evaluate(as.matrix(X_test), y_test.ohe)
+t <-  model %>% predict(as.matrix(X_test)) %>% k_argmax()
+pred.class <- (as.array(t))
+rm(t)
+confusionMatrix(as.factor(pred.class), as.factor(y_test))
+time364<-end-begin
+##BATCH SIZE 128
+model<-NULL
+model<-create_model()
+
+begin<-Sys.time()
+model %>% fit(data.matrix(X_train), y_train.ohe, epochs = 100,batch_size=128)
+end<-Sys.time()
+
+model %>% evaluate(as.matrix(X_test), y_test.ohe)
+t <-  model %>% predict(as.matrix(X_test)) %>% k_argmax()
+pred.class <- (as.array(t))
+rm(t)
+confusionMatrix(as.factor(pred.class), as.factor(y_test))
+time128<-end-begin
+##BATCH SIZE 256
+model<-NULL
+model<-create_model()
+
+begin<-Sys.time()
+model %>% fit(data.matrix(X_train), y_train.ohe, epochs = 100,batch_size=256)
+end<-Sys.time()
+
+model %>% evaluate(as.matrix(X_test), y_test.ohe)
+t <-  model %>% predict(as.matrix(X_test)) %>% k_argmax()
+pred.class <- (as.array(t))
+rm(t)
+confusionMatrix(as.factor(pred.class), as.factor(y_test))
+time256<-end-begin
+cat("Batch size: 1\n Time taken to train neural network: 136.80 (seconds) Overall accuracy: 77.50%\n Class 0: Sens. = 96.49, Spec. = 97.90, Bal.Acc. = 97.20\n Class 1: Sens. = 77.36, Spec. = 84.35, Bal.Acc. = 80.86\n Class 2: Sens. = 90.48, Spec. = 93.04, Bal.Acc. = 91.76\n Class 3: Sens. = 43.75, Spec. = 94.74, Bal.Acc. = 69.24\n")
+cat("Batch size: 32\n Time taken to train neural network: 20.18 (seconds) Overall accuracy: 77.00%\n Class 0: Sens. = 98.25, Spec. = 93.71, Bal.Acc. = 95.98\n Class 1: Sens. = 81.13, Spec. = 87.07, Bal.Acc. = 84.10\n Class 2: Sens. = 85.71, Spec. = 93.67, Bal.Acc. = 89.69\n Class 3: Sens. = 39.58, Spec. = 94.74, Bal.Acc. = 67.16\n")
+cat("Batch size: 64\n Time taken to train neural network: 19.31 (seconds) Overall accuracy: 75.00%\n Class 0: Sens. = 98.25, Spec. = 93.71, Bal.Acc. = 95.98\n Class 1: Sens. = 67.92, Spec. = 86.39, Bal.Acc. = 77.16\n Class 2: Sens. = 85.71, Spec. = 94.30, Bal.Acc. = 90.01\n Class 3: Sens. = 45.83, Spec. = 92.11, Bal.Acc. = 68.97\n")
+cat("Batch size: 128\n Time taken to train neural network: 18.34 (seconds) Overall accuracy: 74.50%\n Class 0: Sens. = 98.25, Spec. = 92.31, Bal.Acc. = 95.28\n Class 1: Sens. = 81.13, Spec. = 87.07, Bal.Acc. = 84.10\n Class 2: Sens. = 71.43, Spec. = 93.04, Bal.Acc. = 82.23\n Class 3: Sens. = 41.67, Spec. = 93.42, Bal.Acc. = 67.54\n")
+cat("Batch size: 256\n Time taken to train neural network: 18.29 (seconds) Overall accuracy: 66.00%\n Class 0: Sens. = 98.25, Spec. = 90.21, Bal.Acc. = 94.23\n Class 1: Sens. = 62.26, Spec. = 81.63, Bal.Acc. = 71.95\n Class 2: Sens. = 76.19, Spec. = 93.67, Bal.Acc. = 84.93\n Class 3: Sens. = 22.92, Spec. = 88.82, Bal.Acc. = 55.87\n")
+```
+### Part 2.1-C-i
+```{r}
+# The time vary as the batch size increases because instead of the model having to train the entire data set once, the data is split into reasonable chunks that are quickly trained. The bigger the batches got the faster the training was. 
+```
+### Part 2.1-C-ii
+```{r}
+#  As the batch size increased the stats got worse. The accuracy, balanced accuracy, and per class statistics decreased as size increased. This makes sense because the model has many smaller sets of data to train and less likely to generalize to the entire dataset.
+```
+### Part 2.-D
+```{r}
+#neurons:8; act:softmax 
+  model<-NULL
+  model <- keras_model_sequential() %>%
+  layer_dense(units = 8, activation="relu") %>%
+  layer_dense(units = 8, activation="softmax") %>%
+  layer_dense(units = 4, activation="softmax")
+
+model %>% 
+  compile(loss = "categorical_crossentropy", 
+          optimizer="adam", 
+          metrics=c("accuracy"))
+model %>% fit(data.matrix(X_train), y_train.ohe, epochs = 100,batch_size=1,verbose=0)
+model %>% evaluate(as.matrix(X_test), y_test.ohe)
+t <-  model %>% predict(as.matrix(X_test)) %>% k_argmax()
+pred.class <- (as.array(t))
+rm(t)
+confusionMatrix(as.factor(pred.class), as.factor(y_test))
+
+#neurons:16; act: relu
+model<-NULL
+  model <- keras_model_sequential() %>%
+  layer_dense(units = 8, activation="relu") %>%
+  layer_dense(units = 8, activation="softmax") %>%
+  layer_dense(units = 4, activation="softmax")
+
+model %>% 
+  compile(loss = "categorical_crossentropy", 
+          optimizer="adam", 
+          metrics=c("accuracy"))
+model %>% fit(data.matrix(X_train), y_train.ohe, epochs = 100,batch_size=1,verbose=0)
+model %>% evaluate(as.matrix(X_test), y_test.ohe)
+t <-  model %>% predict(as.matrix(X_test)) %>% k_argmax()
+pred.class <- (as.array(t))
+rm(t)
+confusionMatrix(as.factor(pred.class), as.factor(y_test))
+# neurons:8; act:relu
+model<-NULL
+  model <- keras_model_sequential() %>%
+  layer_dense(units = 8, activation="relu") %>%
+  layer_dense(units = 8, activation="relu") %>%
+  layer_dense(units = 4, activation="softmax")
+
+model %>% 
+  compile(loss = "categorical_crossentropy", 
+          optimizer="adam", 
+          metrics=c("accuracy"))
+model %>% fit(data.matrix(X_train), y_train.ohe, epochs = 100,batch_size=1,verbose=0)
+model %>% evaluate(as.matrix(X_test), y_test.ohe)
+t <-  model %>% predict(as.matrix(X_test)) %>% k_argmax()
+pred.class <- (as.array(t))
+rm(t)
+confusionMatrix(as.factor(pred.class), as.factor(y_test))
+
+#neurons: 16; act:softmax
+model<-NULL
+  model <- keras_model_sequential() %>%
+  layer_dense(units = 8, activation="relu") %>%
+  layer_dense(units = 16, activation="softmax") %>%
+  layer_dense(units = 4, activation="softmax")
+
+model %>% 
+  compile(loss = "categorical_crossentropy", 
+          optimizer="adam", 
+          metrics=c("accuracy"))
+model %>% fit(data.matrix(X_train), y_train.ohe, epochs = 100,batch_size=1,verbose=0)
+model %>% evaluate(as.matrix(X_test), y_test.ohe)
+t <-  model %>% predict(as.matrix(X_test)) %>% k_argmax()
+pred.class <- (as.array(t))
+rm(t)
+confusionMatrix(as.factor(pred.class), as.factor(y_test))
+cat("Batch size: 1\n Neurons:8\n Activation: softmax\n  Overall accuracy: 81.00%\n Class 0: Sens. = 94.74, Spec. = 96.50, Bal.Acc. = 95.62\n Class 1: Sens. = 84.91, Spec. = 88.44, Bal.Acc. = 86.67\n Class 2: Sens. = 90.48, Spec. = 93.04, Bal.Acc. = 91.76\n Class 3: Sens. = 52.08, Spec. = 96.71, Bal.Acc. = 74.40\n")
+cat("Batch size: 1\n Neurons:16\n Activation: relu\n Overall accuracy: 79.50%\n Class 0: Sens. = 91.23, Spec. = 97.20, Bal.Acc. = 94.22\n Class 1: Sens. = 83.02, Spec. = 89.12, Bal.Acc. = 86.07\n Class 2: Sens. = 90.48, Spec. = 91.77, Bal.Acc. = 91.12\n Class 3: Sens. = 52.08, Spec. = 94.74, Bal.Acc. = 73.41\n")
+cat("Batch size: 1\n Neurons:8\n Activation: relu\n Overall accuracy: 81.00%\n Class 0: Sens. = 92.98, Spec. = 97.20, Bal.Acc. = 95.09\n Class 1: Sens. = 73.58, Spec. = 92.52, Bal.Acc. = 83.05\n Class 2: Sens. = 92.86, Spec. = 93.04, Bal.Acc. = 92.95\n Class 3: Sens. = 64.58, Spec. = 92.11, Bal.Acc. = 78.34\n")
+cat("Batch size: 1\n Neurons:16\n Activation: softmax\n Overall accuracy: 81.00%\n Class 0: Sens. = 89.47, Spec. = 97.90, Bal.Acc. = 93.69\n Class 1: Sens. = 77.36, Spec. = 93.20, Bal.Acc. = 85.28\n Class 2: Sens. = 90.48, Spec. = 91.14, Bal.Acc. = 90.81\n Class 3: Sens. = 66.67, Spec. = 92.76, Bal.Acc. = 79.71\n")
+
+```
+---There is definitely a performance increase. It was difficult choosing a correct construction because 3 out of the 4 I made had a better overall accuracy than the model in a. However I chose the model that used 16 neurons with the softmax activation function because along with a higher overall accuracy, the average balanced accuracy of the classes was higher.

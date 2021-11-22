@@ -1,0 +1,59 @@
+---
+title: "Homework 0"
+output: 
+  html_notebook:
+    toc: yes
+    toc_float: yes
+author: Sohaib A Syed, A20439074
+---
+
+<!-- More information in R Markdown can be found at:
+1. https://www.ssc.wisc.edu/sscc/pubs/RFR/RFR_RMarkdown.html  This is 
+   the place to start since it is a short tutorial.
+2. https://rmarkdown.rstudio.com/index.html This contains a longer 
+   tutorial.  Take a look at the cheatsheet in 
+   https://rmarkdown.rstudio.com/lesson-15.html, it is a concise 
+   reference of R Markdown on two pages.
+<-->
+
+## Use this as a template for your homeworks.
+#### Rename it to firstname-lastname.Rmd.
+#### Run all the chunks by clicking on "Run" at the top right of the edit 
+#### window and choose "Run All".  Assuming there were no errors in the
+#### chunk, you should see a "Preview" button become visible on the top
+#### left of the edit window.  Click this button and a html document should
+#### pop up with the output from this R markdown script.
+
+### Part 1-A
+```{r}
+#setwd("/tmp")
+data(cars)
+cars
+```
+
+### Part 1-B.
+
+```{r}
+# Add code here.  See manual page for the plot() command.
+plot(x=speed,y=dist,main=" Speed vs. Distance of cars")
+plot(x=speed,y=dist,main=" Speed vs. Distance of cars",type="l")
+
+
+```
+### Part 1-C (Summary)
+```{r}
+# Add code here.  See manual page for the summary() command.
+summary(cars)
+```
+
+### Part 1-D
+```{r}
+# Add code here.  Save maximum speed in a variable called "max.speed" and
+# minimum distance in a variable called "min.dist".  The code below will
+# print your output.
+max.speed <- 25.0
+min.dist  <- 2.00
+str <- paste0("Maximum speed is ", max.speed, ", and minimum distance is ", 
+              min.dist)
+str
+```

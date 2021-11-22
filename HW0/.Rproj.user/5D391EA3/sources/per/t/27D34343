@@ -1,0 +1,27 @@
+{
+    "id": "27D34343",
+    "path": "~/RStuff/sohaib-syed.Rmd",
+    "project_path": null,
+    "type": "r_markdown",
+    "hash": "2335161340",
+    "contents": "",
+    "dirty": false,
+    "created": 1631057117047.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "chunk_output_type": "inline",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "24,37",
+        "scrollLine": "15"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1631059199,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1631059199119,
+    "read_only": false,
+    "read_only_alternatives": []
+}
