@@ -1,0 +1,102 @@
+---
+title: "CS 422-Homework 3"
+output: 
+  html_notebook:
+    toc: yes
+    toc_float: yes
+author: Sohaib Syed, A20439074
+---
+
+
+### Part 2.1
+```{r}
+library("ISLR")
+set.seed(1122)
+index <- sample(1:nrow(Auto), .95*dim(Auto)[1])
+train.df <-Auto[index,]
+test.df <-Auto [-index,]
+```
+
+### Part 2.1-A-i
+
+Its unreasonable to use names in the model because those consist of character values, and the names of the cars wouldn't make sense in predicting mpg.
+
+### Part 2.1-A-ii
+```{r}
+train_model<- lm(mpg ~. -name,data=train.df)
+summary(train_model)
+RSS<- c(crossprod(train_model$residuals))
+MSE <- RSS/ length(train_model$residuals)
+RMSE <- sqrt(MSE)
+paste("R2 = .8135, RSE =  3.367, RMSE= ", RMSE)
+# The model fits the data well because we see that the R2 value is high, which indicates a strong fit. RSE is also low which means that the residual error doesn't vary a lot, and similar with RMSE which means that the average residual error also doesn't vary as much. RSE and RMSE are close to each other which i will infer as it meaning that between the different residuals the average and error don't deviate a lot. Essentially, these are signs of a model with a good fit. 
+```
+### Part 2.1-A-iii
+```{r}
+plot(residuals(train_model), main="Residuals of training data")
+```
+### Part 2.1-A-iv
+```{r}
+hist(train_model$residuals,main="Histogram of training model residuals", xlab="Residuals")
+# The distribution is very close to a Gaussian one. It is very slightly skewed to the left. What I can say about the residuals is that most of them are very close to the mean. 
+```
+### Part 2.1-B-i
+```{r}
+ # From part a-ii, the most significant predictors are weight, year, and origin. 
+new_train_model<- lm(mpg ~ weight+year+origin,data=train.df)
+```
+### Part 2.1-B-ii
+```{r}
+summary(new_train_model)
+new_RSS<- c(crossprod(new_train_model$residuals))
+new_MSE <- new_RSS/ length(new_train_model$residuals)
+new_RMSE <- sqrt(new_MSE)
+paste("R2 = .8111, RSE =  3.389, RMSE= ", new_RMSE)
+# This model fits the data pretty well as the R2 is still high, the RSE and RMSE are pretty close to 0.
+```
+### Part 2.1-B-iii
+```{r}
+plot(residuals(new_train_model), main="Residuals for updated model")
+```
+### Part 2.1-B-iv
+```{r}
+hist(new_train_model$residuals,main="Histogram of new training model residuals", xlab="Residuals")
+# There is a Gaussian distribution and it looks like this time there are more residuals closer to positive 15. There also seems to be less negative residuals.
+```
+### Part 2.1-B-v
+Comparing the two models it is difficult to tell from the plots and histogram which is better. In that case, we can take a closer look at the summary. I concluded from this that actually the 2nd model is better. This is because this model has good R2,RSE, and RMSE values with less predictors. Thus there is less complexity for essentially the same model. 
+
+### Part 2.1-C
+```{r}
+column1<-predict(new_train_model,test.df)
+column2<-test.df$mpg
+prediction<-data.frame(column1,column2)
+prediction
+```
+### Part 2.1-D
+```{r}
+new_column1<-predict(new_train_model,test.df,interval = 'confidence',level=.95)
+new_column2<-test.df$mpg
+new_prediction<-data.frame(new_column1,new_column2)
+new_prediction$Matches<-c(ifelse(new_prediction$new_column2 <= new_prediction$upr & new_prediction$new_column2 >= new_prediction$lwr,1,0))
+Num_Matches<-apply(new_prediction["Matches"],2,sum)
+new_prediction
+paste("Total Observations correctly predicted:", Num_Matches)
+```
+### Part 2.1-E
+```{r}
+newer_column1<-predict(new_train_model,test.df,interval = 'prediction',level=.95)
+newer_column2<-test.df$mpg
+newer_prediction<-data.frame(newer_column1,newer_column2)
+newer_prediction$Matches<-c(ifelse(newer_prediction$newer_column2 <= newer_prediction$upr & newer_prediction$newer_column2 >= newer_prediction$lwr,1,0))
+Number_Matches<-apply(newer_prediction["Matches"],2,sum)
+newer_prediction
+paste("Total Observations correctly predicted:", Number_Matches)
+```
+
+### Part 2.1-F-i
+-more matches come from part E, where the prediction intervals are used
+
+### Part 2.1-F-ii
+-This is because when using the prediction intervals the range between upr and lwr is greater. This might be the case due to more variance and outliers that come from pure prediction. 
+
