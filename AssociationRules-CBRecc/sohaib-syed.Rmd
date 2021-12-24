@@ -1,0 +1,123 @@
+---
+title: "CS 422-Homework 9"
+output: 
+  html_notebook:
+    toc: yes
+    toc_float: yes
+author: Sohaib Syed, A20439074
+---
+
+### Part 2.1-A
+```{r}
+library(arules)
+library(arulesViz)
+trans1k <- read.transactions("tr-1k-canonical.csv", sep=",")
+trans5k <- read.transactions("tr-5k-canonical.csv", sep=",")
+trans20k <- read.transactions("tr-20k-canonical.csv", sep=",")
+trans75k <- read.transactions("tr-75k-canonical.csv", sep=",")
+```
+
+### Part 2.1-B
+```{r}
+fset1k<-apriori(trans1k, parameter=list(support=0.035, target="frequent itemsets"))
+fset5k<-apriori(trans5k, parameter=list(support=0.035, target="frequent itemsets"))
+fset20k<-apriori(trans20k, parameter=list(support=0.035, target="frequent itemsets"))
+fset75k<-apriori(trans75k, parameter=list(support=0.035, target="frequent itemsets"))
+inspect(sort(fset1k, decreasing = T, by="count"))
+inspect(sort(fset5k, decreasing = T, by="count"))
+inspect(sort(fset20k, decreasing = T, by="count"))
+inspect(sort(fset75k, decreasing = T, by="count"))
+rules1k <- apriori(trans1k, parameter = list(support=0.035,confidence=.7))
+rules5k <- apriori(trans5k, parameter = list(support=0.035,confidence=.7))
+rules20k <- apriori(trans20k, parameter = list(support=0.035,confidence=.7))
+rules75k <- apriori(trans75k, parameter = list(support=0.035,confidence=.7))
+inspect(sort(rules1k, by="confidence"))
+inspect(sort(rules5k, by="confidence"))
+inspect(sort(rules20k, by="confidence"))
+inspect(sort(rules75k, by="confidence"))
+
+
+```
+### Part 2.1-C 
+As the number of transactions increased, the number of rules decrease. Also, for the rules that persist in larger transactions, the support and confidence are greater than when they were in smaller transactions
+
+### Part 2.1-D-i
+Coffee Eclair is the most frequent item 
+
+### Part 2.1-D-ii
+{Blueberry Tart, Hot Coffee} is the least frequent item set
+
+### Part 2.2
+```{r}
+library(dplyr)
+ratings<-read.csv("ratings.csv")
+movies<-read.csv("movies.csv")
+###UserVector
+Id<-20439074%%671
+userratings<-filter(ratings,userId==Id)
+combination <- merge(userratings, movies)
+
+all_genres<-c("movieId","Action", "Adventure", "Animation", "Children", "Comedy", "Crime", "Documentary", "Drama", "Fantasy",
+"Film-Noir", "Horror", "IMAX", "Musical", "Mystery", "Romance", "Sci-Fi", "Thriller", "War", "Western", "(no
+genres listed)")
+
+user<-data.frame(matrix(NA,    
+                          nrow = nrow(userratings),
+                          ncol = 21))
+colnames(user)<-all_genres
+user["movieId"]=userratings$movieId
+movies_watched<-nrow(userratings)
+
+for (i in 1:nrow(user)){
+  temp_genres<-strsplit(combination$genres, '|', fixed = TRUE)[[i]]
+  for( j in 1:ncol(user)){
+    for (k in 1:length(temp_genres))
+      if (temp_genres[k]==colnames(user)[j]){
+        user[i,j]=1
+      }
+  }
+}
+rm(temp_genres)
+userProfile<-user[-1]
+columnSums<-colSums(userProfile,na.rm=TRUE)
+for(i in 1:length(columnSums)){
+  userProfile["avg",i]<-round(columnSums[i]/movies_watched,digits=3) 
+}
+
+###MovieVector
+my.cosine <- function (x,y){
+  sum(x*y)/(norm(x,type="2")*norm(y,type="2"))
+}
+r_10movies<-sample_n(movies, 10)
+
+movie_profile<-data.frame(matrix(NA,    
+                          nrow = nrow(r_10movies),
+                          ncol = 21))
+colnames(movie_profile)<-all_genres
+movie_profile["movieId"]=r_10movies$movieId
+for (i in 1:nrow(movie_profile)){
+  temp_genres<-strsplit(r_10movies$genres, split = '|', fixed = TRUE)[[i]]
+  for( j in 2:ncol(movie_profile)){
+    for (k in 1:length(temp_genres)){
+      if (temp_genres[k]==colnames(movie_profile)[j]){
+        movie_profile[i,j]=1
+      }
+    }
+  }
+}
+movie_profile[is.na(movie_profile)] = 0
+library(lsa)
+chosen_movies<-data.frame(matrix(NA,    
+                          nrow = 10,
+                          ncol = 3))
+colnames(chosen_movies)<-c("movieId","title","similarity")
+for( i in 1:nrow(movie_profile)){
+  movie_vector<-as.numeric(movie_profile[i, 2:21])
+  chosen_movies<-rbind(chosen_movies,data.frame(movieId = movie_profile[i, 1], title = movies[which(movies$movieId == movie_profile[i, 1]), 2], similarity = my.cosine(userProfile["avg",], movie_vector)))
+}
+chosen_movies <- chosen_movies[-c(1:10), ]
+recommended<- chosen_movies[order(-chosen_movies$similarity),]
+cat(paste("User ID ", Id ," chose the following 10 movies:",toString(r_10movies$movieId),"\n","Of these, the following 5 movies are recommended:"))
+print(recommended[1:5,])
+
+```

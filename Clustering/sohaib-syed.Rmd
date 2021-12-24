@@ -1,0 +1,109 @@
+---
+title: "CS 422- Homework 8"
+output: 
+  html_notebook:
+    toc: yes
+    toc_float: yes
+author: Sohaib Syed, A20439074
+---
+```{r}
+library(cluster)
+library(factoextra)
+```
+### Part 2.1-A-i
+```{r}
+# The attribute that I removed was "C" the top canines.
+```
+### Part 2.1-A-ii
+```{r}
+# The data does not *need* to be standardized, because the range of the data points isn't large, and we aren't using neural networks.
+```
+### Part 2.1-A-iii
+```{r}
+df<-read.table("file19.txt",header=TRUE,row.names=1)
+```
+
+### Part 2.1-b-i
+```{r}
+fviz_nbclust(df, kmeans, method="wss") 
+fviz_nbclust(df, kmeans, method="silhouette")
+#Using both graphs it seems like 3 clusters is optimal because that is where the "elbow" forms and it is also not over fitting according to silhouette graph.
+```
+### Part 2.1-B-ii
+```{r}
+k <- kmeans(df, centers=3, nstart=25)
+fviz_cluster(k, df)
+```
+### Part 2.1-B-iii
+```{r}
+size_of_cluster<- k$size
+size_of_cluster
+# cluster 1: 18 obs, cluster 2: 28 Obs, cluster 3: 20 obs
+```
+### Part 2.1-B-iiii
+```{r}
+cat(k$totss, "is the total SSE")
+```
+### Part 2.1-B-v
+```{r}
+cat(k$withinss[1], "is the SSE of cluster 1.\n", k$withinss[2],"is the SSE of cluster 2.\n",k$withinss[3],"is the SSE of cluster 3." )
+```
+### Part 2.1-B-vi
+```{r}
+#Cluster 1
+which(k$cluster==1)
+#Cluster 2
+which(k$cluster==2)
+#Cluster 3
+which(k$cluster==3)
+# the clusters make sense because if we split the clusters into animals that have certain diets. Carnivores, herbivores, and omnivores. Cluster 1 belongs to herbivores, with some error such as coyotes. Cluster 2 belongs to carnivores, and cluster 3 belong to omnivores. 
+```
+### Part 2.2-a
+```{r}
+dfpart2<-read.csv("s1.csv")
+#Yes, it is necessary to scale the data because the range of values is large.
+```
+### Part 2.2-b-i
+```{r}
+plot(dfpart2)
+```
+### Part 2.2-b-ii
+```{r}
+#15 clusters are visible. They are not well separated well because there are certain points that look closer to another cluster rather than the center of its own cluster. 
+```
+### Part 2.2-c-i
+```{r}
+fviz_nbclust(dfpart2, kmeans, method="wss") 
+```
+### Part 2.2-c-ii
+```{r}
+fviz_nbclust(df, kmeans, method="silhouette")
+```
+### Part 2.2-c-iii
+```{r}
+# 4 Clusters is the optimal choice for k means clustering
+```
+### Part 2.2-d-i
+```{r}
+dfp2scale<-scale(dfpart2,center=F)
+k2 <- kmeans(dfp2scale, centers=4, nstart=25)
+fviz_cluster(k2, dfp2scale)
+```
+### Part 2.2-d-ii
+```{r}
+# K-means clustered the data in 4 large clusters separated by quadrant. It is not the optimal clustering for this data set. 
+```
+### Part 2.2-e-i
+```{r}
+library(dbscan)
+library(fpc)
+# I will use 4 MinPts because there are 2 dimensions. 
+```
+### Part 2.2-e-ii
+```{r}
+kNNdistplot(dfp2scale, k = 4)
+db <- fpc::dbscan(dfp2scale, eps = 0.03, MinPts = 4)
+fviz_cluster(db, dfp2scale, stand = FALSE, ellipse = F, geom = "point")
+paste("At minPts = 4, eps = .03, there are 24 clusters.")
+```
+
