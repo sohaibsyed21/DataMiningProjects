@@ -1,10 +1,10 @@
 ---
-title: "CS 422- Homework 8"
+title: "Clustering"
 output: 
   html_notebook:
     toc: yes
     toc_float: yes
-author: Sohaib Syed, A20439074
+author: Sohaib Syed
 ---
 ```{r}
 library(cluster)
